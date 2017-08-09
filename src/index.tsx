@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { Wrapper } from "./components/Wrapper";
+import { GameContainer } from "./components/GameContainer";
 
 ReactDOM.render(
-    <Wrapper />,
+    <GameContainer />,
     document.getElementById("app")
 );
