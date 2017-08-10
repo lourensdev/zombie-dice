@@ -25,7 +25,6 @@ interface IPaperBoyState {
     totalRedDice: number;
     remaingDice: number[],
     rolledHand: number[];
-    keptHand: number[];
     dice: [ISingleDiceProps];
     winningScore: number;
 }
@@ -43,7 +42,6 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
             totalRedDice: 3,
             remaingDice: [],
             rolledHand: [],
-            keptHand: [0,0,0],
             dice: [{ //Green
                     type: 0,
                     brains: 3,
@@ -122,16 +120,14 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                 gameOver: true,
                 gameShots: currentShots,
                 remaingDice: diceList,
-                rolledHand: allRolledDice,
-                keptHand: diceToKeep
+                rolledHand: allRolledDice
             });
         } else {
             this.setState({
                 gameScore: currentPoints,
                 gameShots: currentShots,
                 remaingDice: diceList,
-                rolledHand: allRolledDice,
-                keptHand: diceToKeep
+                rolledHand: allRolledDice
             });
         }
     }
@@ -141,6 +137,13 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
     }
 
     render(){
+        const isGameOver = this.state.gameOver;
+        let rollButton = null;
+
+        if(!isGameOver){
+            rollButton = <button onClick={(e) => this.handleDiceRoll(e)} className="mui-btn mui-btn--primary">Roll Dice</button>
+        }
+
         return (
             <div className="e-main-content">
                 <Score count={this.state.gameScore} />

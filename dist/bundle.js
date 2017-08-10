@@ -123,7 +123,6 @@ var GameContainer = (function (_super) {
             totalRedDice: 3,
             remaingDice: [],
             rolledHand: [],
-            keptHand: [0, 0, 0],
             dice: [{
                     type: 0,
                     brains: 3,
@@ -194,8 +193,7 @@ var GameContainer = (function (_super) {
                 gameOver: true,
                 gameShots: currentShots,
                 remaingDice: diceList,
-                rolledHand: allRolledDice,
-                keptHand: diceToKeep
+                rolledHand: allRolledDice
             });
         }
         else {
@@ -203,8 +201,7 @@ var GameContainer = (function (_super) {
                 gameScore: currentPoints,
                 gameShots: currentShots,
                 remaingDice: diceList,
-                rolledHand: allRolledDice,
-                keptHand: diceToKeep
+                rolledHand: allRolledDice
             });
         }
     };
@@ -213,6 +210,11 @@ var GameContainer = (function (_super) {
     };
     GameContainer.prototype.render = function () {
         var _this = this;
+        var isGameOver = this.state.gameOver;
+        var rollButton = null;
+        if (!isGameOver) {
+            rollButton = React.createElement("button", { onClick: function (e) { return _this.handleDiceRoll(e); }, className: "mui-btn mui-btn--primary" }, "Roll Dice");
+        }
         return (React.createElement("div", { className: "e-main-content" },
             React.createElement(Score_1.Score, { count: this.state.gameScore }),
             React.createElement(Damage_1.Damage, { count: this.state.gameShots }),
