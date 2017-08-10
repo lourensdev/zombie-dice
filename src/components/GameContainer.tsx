@@ -177,6 +177,13 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
     }
 
     render(){
+        const isGameOver = this.state.gameOver;
+        let rollButton = null;
+
+        if(!isGameOver){
+            rollButton = <button onClick={(e) => this.handleDiceRoll(e)} className="mui-btn mui-btn--primary">Roll Dice</button>
+        }
+
         return (
             <div>
                 {this.renderGameScore(this.state.gameScore)}
@@ -185,8 +192,7 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                 Rolled Hand: {this.state.rolledHand}
                 {this.renderCurrentHand(this.state.rolledHand)} <br />
                 {this.renderGameOver(this.state.gameOver)} <br />
-                <button onClick={(e) => this.handleDiceRoll(e)}
-                    className="mui-btn mui-btn--primary">Roll Dice</button>
+                {rollButton}
             </div>
         )
     }

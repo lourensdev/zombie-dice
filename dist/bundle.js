@@ -247,6 +247,11 @@ var GameContainer = (function (_super) {
     };
     GameContainer.prototype.render = function () {
         var _this = this;
+        var isGameOver = this.state.gameOver;
+        var rollButton = null;
+        if (!isGameOver) {
+            rollButton = React.createElement("button", { onClick: function (e) { return _this.handleDiceRoll(e); }, className: "mui-btn mui-btn--primary" }, "Roll Dice");
+        }
         return (React.createElement("div", null,
             this.renderGameScore(this.state.gameScore),
             this.renderGameShots(this.state.gameShots),
@@ -262,7 +267,7 @@ var GameContainer = (function (_super) {
             this.renderGameOver(this.state.gameOver),
             " ",
             React.createElement("br", null),
-            React.createElement("button", { onClick: function (e) { return _this.handleDiceRoll(e); }, className: "mui-btn mui-btn--primary" }, "Roll Dice")));
+            rollButton));
     };
     return GameContainer;
 }(React.Component));
