@@ -78,7 +78,7 @@ module.exports = React;
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(0);
 var ReactDOM = __webpack_require__(2);
-var GameContainer_1 = __webpack_require__(5);
+var GameContainer_1 = __webpack_require__(3);
 ReactDOM.render(React.createElement(GameContainer_1.GameContainer, null), document.getElementById("app"));
 
 
@@ -89,9 +89,7 @@ ReactDOM.render(React.createElement(GameContainer_1.GameContainer, null), docume
 module.exports = ReactDOM;
 
 /***/ }),
-/* 3 */,
-/* 4 */,
-/* 5 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -115,12 +113,12 @@ var GameContainer = (function (_super) {
         _this.state = {
             gameScore: 0,
             gameShots: 0,
+            gameOver: false,
             totalGreenDice: 6,
             totalYellowDice: 4,
             totalRedDice: 3,
             remaingDice: [],
             rolledHand: [],
-            revealHand: false,
             dice: [{
                     total: 6,
                     colour: "Green",
@@ -163,17 +161,40 @@ var GameContainer = (function (_super) {
     GameContainer.prototype.getDice = function (remaingDice, totalGet) {
         var diceList = remaingDice;
         var allRolledDice = [];
-        for (var i = 0; i < totalGet; i++) {
-            if (diceList.length > -1) {
+        var currentPoints = this.state.gameScore;
+        var currentShots = this.state.gameShots;
+        ;
+        if (diceList.length >= 2) {
+            for (var i = 0; i < totalGet; i++) {
                 var rolledDice = diceList[Math.floor(Math.random() * diceList.length)];
                 allRolledDice.push(rolledDice);
+                switch (rolledDice) {
+                    case 6:
+                        currentPoints++;
+                        break;
+                    case 3:
+                        currentShots++;
+                        break;
+                }
                 diceList.splice(diceList.indexOf(rolledDice), 1);
             }
         }
-        this.setState({
-            remaingDice: diceList,
-            rolledHand: allRolledDice
-        });
+        if (currentShots >= 3) {
+            this.setState({
+                gameOver: true,
+                gameShots: currentShots,
+                remaingDice: diceList,
+                rolledHand: allRolledDice
+            });
+        }
+        else {
+            this.setState({
+                gameScore: currentPoints,
+                gameShots: currentShots,
+                remaingDice: diceList,
+                rolledHand: allRolledDice
+            });
+        }
     };
     GameContainer.prototype.handleDiceRoll = function (e) {
         this.getDice(this.state.remaingDice, 3);
@@ -188,33 +209,41 @@ var GameContainer = (function (_super) {
             "Shots: ",
             totalShots));
     };
-    GameContainer.prototype.renderSingleDice = function (diceType, diceReveal) {
-        var labelString;
-        diceReveal ? labelString = "Revealed" : labelString = "Hidden";
+    GameContainer.prototype.renderSingleDice = function (diceType) {
         var classNames = "mui-btn";
         var typeClass;
+        var label;
         typeClass = classNames;
         switch (diceType) {
             case 6:
                 typeClass += " mui-btn--primary";
+                label = "Green";
                 break;
             case 4:
                 typeClass += " mui-btn--accent";
+                label = "Yellow";
                 break;
             case 3:
                 typeClass += " mui-btn--danger";
+                label = "Red";
                 break;
             default:
                 typeClass;
+                label = "None";
                 break;
         }
-        return (React.createElement("button", { className: typeClass }, labelString));
+        return (React.createElement("button", { className: typeClass }, label));
     };
-    GameContainer.prototype.renderCurrentHand = function (currentHand, revealCurrentHand) {
+    GameContainer.prototype.renderCurrentHand = function (currentHand) {
         return (React.createElement("div", null,
-            this.renderSingleDice(currentHand[0], revealCurrentHand),
-            this.renderSingleDice(currentHand[1], revealCurrentHand),
-            this.renderSingleDice(currentHand[2], revealCurrentHand)));
+            this.renderSingleDice(currentHand[0]),
+            this.renderSingleDice(currentHand[1]),
+            this.renderSingleDice(currentHand[2])));
+    };
+    GameContainer.prototype.renderGameOver = function (isGameOver) {
+        var gameOverState;
+        isGameOver ? gameOverState = "Game Over" : gameOverState = "";
+        return gameOverState;
     };
     GameContainer.prototype.render = function () {
         var _this = this;
@@ -227,7 +256,10 @@ var GameContainer = (function (_super) {
             React.createElement("br", null),
             "Rolled Hand: ",
             this.state.rolledHand,
-            this.renderCurrentHand(this.state.rolledHand, this.state.revealHand),
+            this.renderCurrentHand(this.state.rolledHand),
+            " ",
+            React.createElement("br", null),
+            this.renderGameOver(this.state.gameOver),
             " ",
             React.createElement("br", null),
             React.createElement("button", { onClick: function (e) { return _this.handleDiceRoll(e); }, className: "mui-btn mui-btn--primary" }, "Roll Dice")));

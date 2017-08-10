@@ -11,12 +11,12 @@ interface ISingleDiceProps {
 interface IPaperBoyState {
     gameScore: number;
     gameShots: number;
+    gameOver: boolean;
     totalGreenDice: number;
     totalYellowDice: number;
     totalRedDice: number;
     remaingDice: number[],
     rolledHand: number[];
-    revealHand: boolean;
     dice: [ISingleDiceProps];
 }
 
@@ -27,12 +27,12 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
         this.state = {
             gameScore: 0,
             gameShots: 0,
+            gameOver: false,
             totalGreenDice: 6,
             totalYellowDice: 4,
             totalRedDice: 3,
             remaingDice: [],
             rolledHand: [],
-            revealHand: false,
             dice: [{
                     total: 6,
                     colour: "Green",
@@ -80,18 +80,40 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
         let diceList: number[] = remaingDice;
         let allRolledDice: number[] = [];
 
-        for(let i = 0; i < totalGet; i++){
-            if(diceList.length > -1 ) {
+        let currentPoints: number = this.state.gameScore;
+        let currentShots: number = this.state.gameShots;;
+
+        if(diceList.length >= 2 ) {
+            for(let i = 0; i < totalGet; i++){
                 let rolledDice: number = diceList[Math.floor(Math.random() * diceList.length)];
                 allRolledDice.push(rolledDice);
+                switch(rolledDice) {
+                    case 6:
+                        currentPoints++;
+                        break;
+                    case 3:
+                        currentShots++;
+                        break;
+                }
                 diceList.splice(diceList.indexOf(rolledDice), 1);
             }
         }
 
-        this.setState({
-            remaingDice: diceList,
-            rolledHand: allRolledDice
-        });
+        if(currentShots >= 3){
+            this.setState({
+                gameOver: true,
+                gameShots: currentShots,
+                remaingDice: diceList,
+                rolledHand: allRolledDice
+            });
+        } else {
+            this.setState({
+                gameScore: currentPoints,
+                gameShots: currentShots,
+                remaingDice: diceList,
+                rolledHand: allRolledDice
+            });
+        }
     }
 
     private handleDiceRoll(e: any) {
@@ -106,43 +128,52 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
         return (<h3>Shots: {totalShots}</h3>);
     }
 
-    private renderSingleDice(diceType: number, diceReveal: boolean) {
-        let labelString: string;
-        diceReveal ? labelString = "Revealed" : labelString = "Hidden"; 
+    private renderSingleDice(diceType: number) {
 
         let classNames: string = "mui-btn";
         let typeClass: string;
+        let label: string;
 
         typeClass = classNames;
 
         switch(diceType) {
             case 6:
                 typeClass += " mui-btn--primary";
+                label = "Green";
                 break;
             case 4:
                 typeClass += " mui-btn--accent";
+                label = "Yellow";
                 break;
             case 3:
                 typeClass += " mui-btn--danger";
+                label = "Red";
                 break;
             default:
                 typeClass;
+                label = "None";
                 break;
         }
 
         return (
-            <button className={typeClass}>{labelString}</button>
+            <button className={typeClass}>{label}</button>
         );
     }
 
-    private renderCurrentHand(currentHand: number[], revealCurrentHand: boolean){
+    private renderCurrentHand(currentHand: number[]){
         return (
             <div>
-                {this.renderSingleDice(currentHand[0], revealCurrentHand)}
-                {this.renderSingleDice(currentHand[1], revealCurrentHand)}
-                {this.renderSingleDice(currentHand[2], revealCurrentHand)}
+                {this.renderSingleDice(currentHand[0])}
+                {this.renderSingleDice(currentHand[1])}
+                {this.renderSingleDice(currentHand[2])}
             </div>
         );
+    }
+
+    private renderGameOver(isGameOver: boolean){
+        let gameOverState: string;
+        isGameOver ? gameOverState = "Game Over" : gameOverState = "";
+        return gameOverState;
     }
 
     render(){
@@ -152,7 +183,8 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                 {this.renderGameShots(this.state.gameShots)}
                 Remaining Dice: {this.state.remaingDice} <br />
                 Rolled Hand: {this.state.rolledHand}
-                {this.renderCurrentHand(this.state.rolledHand, this.state.revealHand)} <br />
+                {this.renderCurrentHand(this.state.rolledHand)} <br />
+                {this.renderGameOver(this.state.gameOver)} <br />
                 <button onClick={(e) => this.handleDiceRoll(e)}
                     className="mui-btn mui-btn--primary">Roll Dice</button>
             </div>
