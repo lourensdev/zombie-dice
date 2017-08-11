@@ -7,31 +7,37 @@ interface IDiceProps {
 export class SingleDice extends React.Component<IDiceProps, {}>{
     render (){
 
-        let classNames: string = "mui-btn";
+        let classNames: string = "e-dice-fill";
         let typeClass: string;
-        let label: string;
+        let diceTypeImgUrl: string;
 
         typeClass = classNames;
-
+        
         switch(this.props.type) {
             case 0:
-                typeClass += " mui-btn--primary";
-                label = "Brain";
+                typeClass += " m-brain";
+                diceTypeImgUrl = "./src/images/newspaper-icon.svg";
                 break;
             case 1:
-                typeClass += " mui-btn--accent";
-                label = "Runner";
+                typeClass += " m-run";
+                diceTypeImgUrl = "./src/images/run-icon.svg";
                 break;
             case 2:
-                typeClass += " mui-btn--danger";
-                label = "Shot";
+                typeClass += " m-shot";
+                diceTypeImgUrl = "./src/images/shot-icon.svg";
                 break;
             default:
                 typeClass;
-                label = "None";
+                diceTypeImgUrl = "./src/images/blank-icon.svg";
                 break;
         }
 
-        return (<button className={typeClass}>{label}</button>);
+        return (
+            <div className="e-single-dice">
+                <div className={typeClass}>
+                    <img src={diceTypeImgUrl} />
+                </div>
+            </div>
+        );
     }
 }

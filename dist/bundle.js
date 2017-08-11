@@ -108,8 +108,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(0);
 var Score_1 = __webpack_require__(4);
 var Damage_1 = __webpack_require__(5);
-var SingleDice_1 = __webpack_require__(6);
-var Actions_1 = __webpack_require__(7);
+var Graphics_1 = __webpack_require__(6);
+var SingleDice_1 = __webpack_require__(7);
+var Actions_1 = __webpack_require__(8);
 var GameContainer = (function (_super) {
     __extends(GameContainer, _super);
     function GameContainer() {
@@ -123,6 +124,7 @@ var GameContainer = (function (_super) {
             totalRedDice: 3,
             remaingDice: [],
             rolledHand: [],
+            keptHand: [0, 0, 0],
             dice: [{
                     type: 0,
                     brains: 3,
@@ -142,7 +144,8 @@ var GameContainer = (function (_super) {
                     runs: 2,
                     total: 3
                 }],
-            winningScore: 12
+            winningScore: 12,
+            deathScore: 3
         };
         return _this;
     }
@@ -188,12 +191,13 @@ var GameContainer = (function (_super) {
                 }
             }
         }
-        if (currentShots >= 3) {
+        if (currentShots >= this.state.deathScore) {
             this.setState({
                 gameOver: true,
                 gameShots: currentShots,
                 remaingDice: diceList,
-                rolledHand: allRolledDice
+                rolledHand: allRolledDice,
+                keptHand: diceToKeep
             });
         }
         else {
@@ -201,7 +205,8 @@ var GameContainer = (function (_super) {
                 gameScore: currentPoints,
                 gameShots: currentShots,
                 remaingDice: diceList,
-                rolledHand: allRolledDice
+                rolledHand: allRolledDice,
+                keptHand: diceToKeep
             });
         }
     };
@@ -210,19 +215,16 @@ var GameContainer = (function (_super) {
     };
     GameContainer.prototype.render = function () {
         var _this = this;
-        var isGameOver = this.state.gameOver;
-        var rollButton = null;
-        if (!isGameOver) {
-            rollButton = React.createElement("button", { onClick: function (e) { return _this.handleDiceRoll(e); }, className: "mui-btn mui-btn--primary" }, "Roll Dice");
-        }
         return (React.createElement("div", { className: "e-main-content" },
             React.createElement(Score_1.Score, { count: this.state.gameScore }),
             React.createElement(Damage_1.Damage, { count: this.state.gameShots }),
-            React.createElement("div", null,
-                React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[0] }),
-                React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[1] }),
-                React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[2] })),
-            React.createElement(Actions_1.Actions, { gameState: this.state.gameOver, onRollClick: function (e) { return _this.handleDiceRoll(e); } })));
+            React.createElement(Graphics_1.Graphics, { gameOver: this.state.gameOver, imgUrl: "./src/images/walking-animation.gif", classNames: "b-main-image" }),
+            React.createElement("div", { className: "e-actions" },
+                React.createElement("div", { className: "b-dice clearfix" },
+                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[0] }),
+                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[1] }),
+                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[2] })),
+                React.createElement(Actions_1.Actions, { gameState: this.state.gameOver, onRollClick: function (e) { return _this.handleDiceRoll(e); } }))));
     };
     return GameContainer;
 }(React.Component));
@@ -252,19 +254,10 @@ var Score = (function (_super) {
     function Score() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Score.prototype.renderScore = function (scoreCount) {
-        var blankArray = [];
-        for (var i = 0; i < scoreCount; i++) {
-            blankArray.push(scoreCount);
-        }
-        ;
-        return blankArray.map(function (item, index) {
-            return (React.createElement("div", { className: "e-score-item" },
-                React.createElement("div", { className: "e-score-fill" })));
-        });
-    };
     Score.prototype.render = function () {
-        return (React.createElement("div", { className: "b-score clearfix" }, this.renderScore(this.props.count)));
+        return (React.createElement("div", { className: "b-score m-score" },
+            React.createElement("div", { className: "e-score-count" }, this.props.count),
+            React.createElement("div", { className: "e-score-label" }, "Delivered")));
     };
     return Score;
 }(React.Component));
@@ -294,19 +287,10 @@ var Damage = (function (_super) {
     function Damage() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Damage.prototype.renderDamage = function (scoreCount) {
-        var blankArray = [];
-        for (var i = 0; i < scoreCount; i++) {
-            blankArray.push(scoreCount);
-        }
-        ;
-        return blankArray.map(function (item, index) {
-            return (React.createElement("div", { className: "e-damage-item" },
-                React.createElement("div", { className: "e-damage-fill" })));
-        });
-    };
     Damage.prototype.render = function () {
-        return (React.createElement("div", { className: "b-damage clearfix" }, this.renderDamage(this.props.count)));
+        return (React.createElement("div", { className: "b-score m-damage" },
+            React.createElement("div", { className: "e-score-count" }, this.props.count),
+            React.createElement("div", { className: "e-score-label" }, "Shots")));
     };
     return Damage;
 }(React.Component));
@@ -331,35 +315,77 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(0);
+var Graphics = (function (_super) {
+    __extends(Graphics, _super);
+    function Graphics() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Graphics.prototype.render = function () {
+        if (this.props.gameOver) {
+            return (React.createElement("div", { className: this.props.classNames },
+                React.createElement("div", { className: "e-img-float" },
+                    React.createElement("img", { src: "./src/images/death-icon.svg", alt: "Paperboy" }))));
+        }
+        else {
+            return (React.createElement("div", { className: this.props.classNames },
+                React.createElement("div", { className: "e-img-float" },
+                    React.createElement("img", { src: this.props.imgUrl, className: "e-img-animaiton", alt: "Paperboy" }))));
+        }
+    };
+    return Graphics;
+}(React.Component));
+exports.Graphics = Graphics;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(0);
 var SingleDice = (function (_super) {
     __extends(SingleDice, _super);
     function SingleDice() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     SingleDice.prototype.render = function () {
-        var classNames = "mui-btn";
+        var classNames = "e-dice-fill";
         var typeClass;
-        var label;
+        var diceTypeImgUrl;
         typeClass = classNames;
         switch (this.props.type) {
             case 0:
-                typeClass += " mui-btn--primary";
-                label = "Brain";
+                typeClass += " m-brain";
+                diceTypeImgUrl = "./src/images/newspaper-icon.svg";
                 break;
             case 1:
-                typeClass += " mui-btn--accent";
-                label = "Runner";
+                typeClass += " m-run";
+                diceTypeImgUrl = "./src/images/run-icon.svg";
                 break;
             case 2:
-                typeClass += " mui-btn--danger";
-                label = "Shot";
+                typeClass += " m-shot";
+                diceTypeImgUrl = "./src/images/shot-icon.svg";
                 break;
             default:
                 typeClass;
-                label = "None";
+                diceTypeImgUrl = "./src/images/blank-icon.svg";
                 break;
         }
-        return (React.createElement("button", { className: typeClass }, label));
+        return (React.createElement("div", { className: "e-single-dice" },
+            React.createElement("div", { className: typeClass },
+                React.createElement("img", { src: diceTypeImgUrl }))));
     };
     return SingleDice;
 }(React.Component));
@@ -367,7 +393,7 @@ exports.SingleDice = SingleDice;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -389,13 +415,16 @@ var Actions = (function (_super) {
     function Actions() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Actions.prototype.handleRestart = function (e) {
+        window.location.reload(true);
+    };
     Actions.prototype.render = function () {
         var _this = this;
         if (!this.props.gameState) {
-            return (React.createElement("button", { onClick: function (e) { return _this.props.onRollClick(e); }, className: "mui-btn mui-btn--primary" }, "Roll Dice"));
+            return (React.createElement("button", { onClick: function (e) { return _this.props.onRollClick(e); }, className: "b-button m-blue" }, "Roll"));
         }
         else {
-            return (React.createElement("button", { onClick: function (e) { return _this.props.onRollClick(e); }, className: "mui-btn mui-btn--primary", disabled: true }, "Game Over"));
+            return (React.createElement("button", { className: "b-button m-red", onClick: function (e) { return _this.handleRestart(e); } }, "Restart"));
         }
     };
     return Actions;

@@ -6,11 +6,16 @@ interface IActionProps {
 }
 
 export class Actions extends React.Component<IActionProps, {}>{
+
+    private handleRestart(e: any){
+        window.location.reload(true);
+    }
+    
     render (){
         if(!this.props.gameState){
-            return (<button onClick={(e) => this.props.onRollClick(e)} className="mui-btn mui-btn--primary">Roll Dice</button>);
+            return (<button onClick={(e) => this.props.onRollClick(e)} className="b-button m-blue">Roll</button>);
         } else {
-            return (<button onClick={(e) => this.props.onRollClick(e)} className="mui-btn mui-btn--primary" disabled>Game Over</button>);
+            return (<button className="b-button m-red" onClick={(e) => this.handleRestart(e)}>Restart</button>);
         }
     }
 }
