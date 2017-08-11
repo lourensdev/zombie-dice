@@ -108,9 +108,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(0);
 var Score_1 = __webpack_require__(4);
 var Damage_1 = __webpack_require__(5);
-var Graphics_1 = __webpack_require__(6);
-var SingleDice_1 = __webpack_require__(7);
-var Actions_1 = __webpack_require__(8);
+var Graphics_1 = __webpack_require__(8);
+var SingleDice_1 = __webpack_require__(6);
+var Actions_1 = __webpack_require__(7);
 var GameContainer = (function (_super) {
     __extends(GameContainer, _super);
     function GameContainer() {
@@ -145,7 +145,8 @@ var GameContainer = (function (_super) {
                     total: 3
                 }],
             winningScore: 12,
-            deathScore: 3
+            deathScore: 3,
+            animateClass: ""
         };
         return _this;
     }
@@ -210,17 +211,29 @@ var GameContainer = (function (_super) {
             });
         }
     };
+    GameContainer.prototype.animationDelay = function (animationClass) {
+        this.setState({
+            animateClass: animationClass
+        });
+        setTimeout(function () {
+            this.setState({
+                animateClass: ""
+            });
+        }.bind(this), 900);
+    };
     GameContainer.prototype.handleDiceRoll = function (e) {
+        this.animationDelay("m-animate");
         this.getDice(this.state.remaingDice, 3);
     };
     GameContainer.prototype.render = function () {
         var _this = this;
+        var diceAnimClass = "b-dice clearfix " + this.state.animateClass;
         return (React.createElement("div", { className: "e-main-content" },
             React.createElement(Score_1.Score, { count: this.state.gameScore }),
             React.createElement(Damage_1.Damage, { count: this.state.gameShots }),
             React.createElement(Graphics_1.Graphics, { gameOver: this.state.gameOver, imgUrl: "./src/images/walking-animation.gif", classNames: "b-main-image" }),
             React.createElement("div", { className: "e-actions" },
-                React.createElement("div", { className: "b-dice clearfix" },
+                React.createElement("div", { className: diceAnimClass },
                     React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[0] }),
                     React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[1] }),
                     React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[2] })),
@@ -315,46 +328,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(0);
-var Graphics = (function (_super) {
-    __extends(Graphics, _super);
-    function Graphics() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Graphics.prototype.render = function () {
-        if (this.props.gameOver) {
-            return (React.createElement("div", { className: this.props.classNames },
-                React.createElement("div", { className: "e-img-float" },
-                    React.createElement("img", { src: "./src/images/death-icon.svg", alt: "Paperboy" }))));
-        }
-        else {
-            return (React.createElement("div", { className: this.props.classNames },
-                React.createElement("div", { className: "e-img-float" },
-                    React.createElement("img", { src: this.props.imgUrl, className: "e-img-animaiton", alt: "Paperboy" }))));
-        }
-    };
-    return Graphics;
-}(React.Component));
-exports.Graphics = Graphics;
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(0);
 var SingleDice = (function (_super) {
     __extends(SingleDice, _super);
     function SingleDice() {
@@ -393,7 +366,7 @@ exports.SingleDice = SingleDice;
 
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -430,6 +403,44 @@ var Actions = (function (_super) {
     return Actions;
 }(React.Component));
 exports.Actions = Actions;
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(0);
+var Graphics = (function (_super) {
+    __extends(Graphics, _super);
+    function Graphics() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Graphics.prototype.render = function () {
+        var gameOverModifier = "";
+        if (this.props.gameOver) {
+            gameOverModifier = " m-game-over";
+        }
+        return (React.createElement("div", { className: this.props.classNames + gameOverModifier },
+            React.createElement("div", { className: "e-img-float" },
+                React.createElement("img", { src: "./src/images/death-icon.svg", className: "e-img-death", alt: "Paperboy" }),
+                React.createElement("img", { src: this.props.imgUrl, className: "e-img-animaiton", alt: "Paperboy" }))));
+    };
+    return Graphics;
+}(React.Component));
+exports.Graphics = Graphics;
 
 
 /***/ })
