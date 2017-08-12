@@ -16,7 +16,7 @@ export class SingleDice extends React.Component<IDiceProps, {}>{
         switch(this.props.type) {
             case 0:
                 typeClass += " m-brain";
-                diceTypeImgUrl = "./src/images/newspaper-icon.svg";
+                diceTypeImgUrl = "./src/images/brain-icon.svg";
                 break;
             case 1:
                 typeClass += " m-run";
