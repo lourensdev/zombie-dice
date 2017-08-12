@@ -4,19 +4,14 @@ pages:
   stages: 
   - compile
   - deploy
-
-  compile:
-    stage: compile
-    script: webpack
-
   script:
+  - npm install webpack
+  - webpack
   - mkdir .public
   - cp -r * .public
   - mv .public public
-
   artifacts:
     paths:
     - public
-
   only:
   - master
