@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as ReactCSSTransitionGroup from "react-addons-css-transition-group";
 
 import { Score } from "./Score";
 import { Damage } from "./Damage";
@@ -28,7 +29,6 @@ interface IPaperBoyState {
     dice: [ISingleDiceProps];
     winningScore: number;
     deathScore: number;
-    animateClass: string;
 }
 
 export class GameContainer extends React.Component<{}, IPaperBoyState> {
@@ -65,8 +65,7 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                     total: 3
                 }],
             winningScore: 12,
-            deathScore: 3,
-            animateClass: ""
+            deathScore: 3
         }
     }
 
@@ -139,35 +138,29 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
         }
     }
 
-    private animationDelay(animationClass: string){
-        this.setState({
-            animateClass: animationClass
-        });
-        setTimeout(function(){
-            this.setState({
-                animateClass: ""
-            });
-        }.bind(this),900);
-    }
-
     private handleDiceRoll(e: any) {
-        this.animationDelay("m-animate");
         this.getDice(this.state.remaingDice, 3);
     }
 
     render(){
-        let diceAnimClass:string = "b-dice clearfix " + this.state.animateClass;
         return (
             <div className="e-main-content">
                 <Score count={this.state.gameScore} />
                 <Damage count={this.state.gameShots} />
                 <Graphics gameOver={this.state.gameOver} imgUrl="./src/images/walking-animation.gif" classNames="b-main-image" />
                 <div className="e-actions">
-                    <div className={diceAnimClass}>
-                        <SingleDice type={this.state.rolledHand[0]} />
-                        <SingleDice type={this.state.rolledHand[1]} />
-                        <SingleDice type={this.state.rolledHand[2]} />
-                    </div>
+                    <ReactCSSTransitionGroup
+                        transitionName="m-anim"
+                        transitionAppear={true}
+                        transitionAppearTimeout={2000}
+                        transitionEnter={false}
+                        transitionLeave={false}>
+                        <div className="b-dice clearfix">
+                            <SingleDice type={this.state.rolledHand[0]} key={1} />
+                            <SingleDice type={this.state.rolledHand[1]} key={2} />
+                            <SingleDice type={this.state.rolledHand[2]} key={3} />
+                        </div>
+                    </ReactCSSTransitionGroup>
                     <Actions gameState={this.state.gameOver} onRollClick={(e) => this.handleDiceRoll(e)} />
                     {/* <Debugger info={[this.state.remaingDice, this.state.rolledHand]} /> */}
                 </div>
