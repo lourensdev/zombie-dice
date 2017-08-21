@@ -12,7 +12,7 @@ export class Score extends React.Component<IScoreProps, {}>{
                     {this.props.count}
                 </div>
                 <div className="e-score-label">
-                    Delivered
+                    Brains
                 </div>
             </div>
         );

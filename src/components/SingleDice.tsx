@@ -8,10 +8,8 @@ export class SingleDice extends React.Component<IDiceProps, {}>{
     render (){
 
         let classNames: string = "e-dice-fill";
-        let typeClass: string;
+        let typeClass: string = "";
         let diceTypeImgUrl: string;
-
-        typeClass = classNames;
         
         switch(this.props.type) {
             case 0:
@@ -32,9 +30,11 @@ export class SingleDice extends React.Component<IDiceProps, {}>{
                 break;
         }
 
+        classNames += typeClass;
+
         return (
             <div className="e-single-dice">
-                <div className={typeClass}>
+                <div className={classNames}>
                     <img src={diceTypeImgUrl} />
                 </div>
             </div>

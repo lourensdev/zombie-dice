@@ -1,6 +1,6 @@
 import * as React from "react";
-import * as ReactCSSTransitionGroup from "react-addons-css-transition-group";
 
+import { Animate } from "./Animate";
 import { Score } from "./Score";
 import { Damage } from "./Damage";
 import { Graphics } from "./Graphics";
@@ -16,7 +16,7 @@ interface ISingleDiceProps {
     total?: number;
 }
 
-interface IPaperBoyState {
+interface IZombieDiceState {
     gameScore: number;
     gameShots: number;
     gameOver: boolean;
@@ -29,19 +29,24 @@ interface IPaperBoyState {
     dice: [ISingleDiceProps];
     winningScore: number;
     deathScore: number;
+    animated: boolean;
 }
 
-export class GameContainer extends React.Component<{}, IPaperBoyState> {
+export class GameContainer extends React.Component<{}, IZombieDiceState> {
     constructor(){
         super();
+
+        let initialTotalGreen: number = 6;
+        let initialTotalYellow: number = 4;
+        let initialTotalRed: number = 3;
 
         this.state = {
             gameScore: 0,
             gameShots: 0,
             gameOver: false,
-            totalGreenDice: 6,
-            totalYellowDice: 4,
-            totalRedDice: 3,
+            totalGreenDice: initialTotalGreen,
+            totalYellowDice: initialTotalYellow,
+            totalRedDice: initialTotalRed,
             remaingDice: [],
             rolledHand: [],
             keptHand: [0,0,0],
@@ -50,22 +55,23 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                     brains: 3,
                     shots: 1,
                     runs: 2,
-                    total: 6
+                    total: initialTotalGreen
                 },{ //Yellow
                     type: 1,
                     brains: 2,
                     shots: 2,
                     runs: 2,
-                    total: 4
+                    total: initialTotalYellow
                 },{ //Red
                     type: 2,
                     brains: 1,
                     shots: 3,
                     runs: 2,
-                    total: 3
+                    total: initialTotalRed
                 }],
             winningScore: 12,
-            deathScore: 3
+            deathScore: 3,
+            animated: false
         }
     }
 
@@ -96,7 +102,7 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
         let allRolledDice: number[] = [];
         let diceToKeep: number[] = [];
 
-        let currentPoints: number = this.state.gameScore;
+        let currentScore: number = this.state.gameScore;
         let currentShots: number = this.state.gameShots;
 
         if(diceList.length >= 2 ) {
@@ -105,7 +111,7 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                 allRolledDice.push(rolledDice);
                 switch(rolledDice) {
                     case 0:
-                        currentPoints++;
+                        currentScore++;
                         diceList.splice(diceList.indexOf(rolledDice), 1);
                         break;
                     case 1:
@@ -119,21 +125,39 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
             }
         }
 
-        if(currentShots >= this.state.deathScore){
+        this.animate( 2000, () => {
+            this.updateScore( currentShots, currentScore, remaingDice, allRolledDice, diceToKeep )
+        });
+    }
+
+    private animate(delay: number, callback: any){
+        this.setState({
+            animated: true
+        });
+        setTimeout(() => {
+            this.setState({
+                animated: false
+            });
+            callback();
+        }, delay);
+    }
+
+    private updateScore(gameShots: number, gameScore: number, remaingDice: number[], rolledHand: number[], keptHand: number[]){
+        if(gameShots >= this.state.deathScore){
             this.setState({
                 gameOver: true,
-                gameShots: currentShots,
-                remaingDice: diceList,
-                rolledHand: allRolledDice,
-                keptHand: diceToKeep
+                gameShots: gameShots,
+                remaingDice: remaingDice,
+                rolledHand: rolledHand,
+                keptHand: keptHand
             });
         } else {
             this.setState({
-                gameScore: currentPoints,
-                gameShots: currentShots,
-                remaingDice: diceList,
-                rolledHand: allRolledDice,
-                keptHand: diceToKeep
+                gameShots: gameShots,
+                gameScore: gameScore,
+                remaingDice: remaingDice,
+                rolledHand: rolledHand,
+                keptHand: keptHand
             });
         }
     }
@@ -149,18 +173,11 @@ export class GameContainer extends React.Component<{}, IPaperBoyState> {
                 <Damage count={this.state.gameShots} />
                 <Graphics gameOver={this.state.gameOver} imgUrl="./src/images/walking-animation.gif" classNames="b-main-image" />
                 <div className="e-actions">
-                    <ReactCSSTransitionGroup
-                        transitionName="m-anim"
-                        transitionAppear={true}
-                        transitionAppearTimeout={2000}
-                        transitionEnter={false}
-                        transitionLeave={false}>
-                        <div className="b-dice clearfix">
-                            <SingleDice type={this.state.rolledHand[0]} key={1} />
-                            <SingleDice type={this.state.rolledHand[1]} key={2} />
-                            <SingleDice type={this.state.rolledHand[2]} key={3} />
-                        </div>
-                    </ReactCSSTransitionGroup>
+                    <Animate animate={this.state.animated} baseClass="b-dice clearfix" animateActive="m-animate" animateDone="m-animate-done">
+                        <SingleDice type={this.state.rolledHand[0]} key={0} />
+                        <SingleDice type={this.state.rolledHand[1]} key={1} />
+                        <SingleDice type={this.state.rolledHand[2]} key={2} />
+                    </Animate>
                     <Actions gameState={this.state.gameOver} onRollClick={(e) => this.handleDiceRoll(e)} />
                     {/* <Debugger info={[this.state.remaingDice, this.state.rolledHand]} /> */}
                 </div>

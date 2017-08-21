@@ -161,6 +161,7 @@ body {
     display:block;
     margin-left: -@gutter;
     margin-right: -@gutter;
+    opacity: 1;
 
     .e-single-dice {
         width: 33.33333333%;
@@ -186,7 +187,6 @@ body {
 
         &.m-run {
             padding-top: 21px;
-            
         }
 
         &.m-shot {
@@ -195,14 +195,9 @@ body {
         }
     }
 
-    &.m-anim {
-        &-appear {
-            opacity:0;
-        }
-
-        &-appear-active {
-            opacity:1;
-            transition: opacity 2s ease-in;
+    &.m-animate {
+        .e-dice-fill img {
+            opacity: 0;
         }
     }
 }
