@@ -126,8 +126,16 @@ var GameContainer = (function (_super) {
             totalGreenDice: initialTotalGreen,
             totalYellowDice: initialTotalYellow,
             totalRedDice: initialTotalRed,
+            diceOdds: [{
+                    odds: [0, 0, 0, 1, 1, 2] //Green Dice | Brains = 0; Runs = 1; Shots = 2
+                }, {
+                    odds: [0, 0, 1, 1, 2, 2] //Yellow Dice | Brains = 0; Runs = 1; Shots = 2
+                }, {
+                    odds: [0, 1, 1, 2, 2, 2] //Red Dice | Brains = 0; Runs = 1; Shots = 2
+                }],
             remaingDice: [],
-            rolledHand: [],
+            rolledDice: [],
+            rolledSide: [],
             keptHand: [0, 0, 0],
             dice: [{
                     type: 0,
@@ -155,50 +163,66 @@ var GameContainer = (function (_super) {
         return _this;
     }
     GameContainer.prototype.componentWillMount = function () {
-        this.remaingDiceList(this.state.dice[0], this.state.dice[1], this.state.dice[2]);
+        var allDice = [];
+        this.diceListBuilder(allDice, this.state.dice[0].total, this.state.dice[0].type);
+        this.diceListBuilder(allDice, this.state.dice[1].total, this.state.dice[1].type);
+        this.diceListBuilder(allDice, this.state.dice[2].total, this.state.dice[2].type);
+        this.setState({
+            remaingDice: allDice
+        });
     };
     GameContainer.prototype.diceListBuilder = function (allDiceList, diceTotal, diceType) {
         for (var i = 0; i < diceTotal; i++) {
             allDiceList.push(diceType);
         }
     };
-    GameContainer.prototype.remaingDiceList = function (greenDice, yellowDice, redDice) {
-        var allDice = [];
-        this.diceListBuilder(allDice, greenDice.total, greenDice.type);
-        this.diceListBuilder(allDice, yellowDice.total, yellowDice.type);
-        this.diceListBuilder(allDice, redDice.total, redDice.type);
-        this.setState({
-            remaingDice: allDice
-        });
+    GameContainer.prototype.getRandomDice = function (arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    };
+    GameContainer.prototype.getRandomDiceSide = function (diceType) {
+        if (typeof diceType !== "undefined") {
+            var diceOdds = this.state.diceOdds[diceType].odds;
+            var randomSide = this.getRandomDice(diceOdds);
+            return randomSide;
+        }
     };
     GameContainer.prototype.getDice = function (remaingDice, totalGet) {
         var _this = this;
         var diceList = remaingDice;
-        var allRolledDice = [];
+        var rolledDiceHand = [];
+        var rolledDiceSide = [];
         var diceToKeep = [];
         var currentScore = this.state.gameScore;
         var currentShots = this.state.gameShots;
         if (diceList.length >= 2) {
             for (var i = 0; i < totalGet; i++) {
-                var rolledDice = diceList[Math.floor(Math.random() * diceList.length)];
-                allRolledDice.push(rolledDice);
+                var rolledDice = this.getRandomDice(diceList);
+                var rolledSide = this.getRandomDiceSide(rolledDice);
+                rolledDiceHand.push(rolledDice);
+                rolledDiceSide.push(rolledSide);
                 switch (rolledDice) {
                     case 0:
-                        currentScore++;
                         diceList.splice(diceList.indexOf(rolledDice), 1);
                         break;
                     case 1:
                         diceToKeep.push(rolledDice);
                         break;
                     case 2:
-                        currentShots++;
                         diceList.splice(diceList.indexOf(rolledDice), 1);
+                        break;
+                }
+                switch (rolledSide) {
+                    case 0:
+                        currentScore++;
+                        break;
+                    case 2:
+                        currentShots++;
                         break;
                 }
             }
         }
-        this.animate(2000, function () {
-            _this.updateScore(currentShots, currentScore, remaingDice, allRolledDice, diceToKeep);
+        this.animate(0, function () {
+            _this.updateScore(currentShots, currentScore, remaingDice, rolledDiceHand, rolledDiceSide, diceToKeep);
         });
     };
     GameContainer.prototype.animate = function (delay, callback) {
@@ -213,13 +237,14 @@ var GameContainer = (function (_super) {
             callback();
         }, delay);
     };
-    GameContainer.prototype.updateScore = function (gameShots, gameScore, remaingDice, rolledHand, keptHand) {
+    GameContainer.prototype.updateScore = function (gameShots, gameScore, remaingDice, rolledDice, rolledSide, keptHand) {
         if (gameShots >= this.state.deathScore) {
             this.setState({
                 gameOver: true,
                 gameShots: gameShots,
                 remaingDice: remaingDice,
-                rolledHand: rolledHand,
+                rolledDice: rolledDice,
+                rolledSide: rolledSide,
                 keptHand: keptHand
             });
         }
@@ -228,7 +253,8 @@ var GameContainer = (function (_super) {
                 gameShots: gameShots,
                 gameScore: gameScore,
                 remaingDice: remaingDice,
-                rolledHand: rolledHand,
+                rolledDice: rolledDice,
+                rolledSide: rolledSide,
                 keptHand: keptHand
             });
         }
@@ -244,9 +270,9 @@ var GameContainer = (function (_super) {
             React.createElement(Graphics_1.Graphics, { gameOver: this.state.gameOver, imgUrl: "./src/images/walking-animation.gif", classNames: "b-main-image" }),
             React.createElement("div", { className: "e-actions" },
                 React.createElement(Animate_1.Animate, { animate: this.state.animated, baseClass: "b-dice clearfix", animateActive: "m-animate", animateDone: "m-animate-done" },
-                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[0], key: 0 }),
-                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[1], key: 1 }),
-                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledHand[2], key: 2 })),
+                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledDice[0], side: this.state.rolledSide[0], key: 0 }),
+                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledDice[1], side: this.state.rolledSide[1], key: 1 }),
+                    React.createElement(SingleDice_1.SingleDice, { type: this.state.rolledDice[2], side: this.state.rolledSide[2], key: 2 })),
                 React.createElement(Actions_1.Actions, { gameState: this.state.gameOver, onRollClick: function (e) { return _this.handleDiceRoll(e); } }))));
     };
     return GameContainer;
@@ -425,18 +451,33 @@ var SingleDice = (function (_super) {
     SingleDice.prototype.render = function () {
         var classNames = "e-dice-fill";
         var typeClass = "";
+        var sideClass = "";
         var diceTypeImgUrl;
         switch (this.props.type) {
             case 0:
-                typeClass += " m-brain";
+                typeClass += " m-green";
+                break;
+            case 1:
+                typeClass += " m-yellow";
+                break;
+            case 2:
+                typeClass += " m-red";
+                break;
+            default:
+                typeClass;
+                break;
+        }
+        switch (this.props.side) {
+            case 0:
+                sideClass += " m-brain";
                 diceTypeImgUrl = "./src/images/brain-icon.svg";
                 break;
             case 1:
-                typeClass += " m-run";
+                sideClass += " m-run";
                 diceTypeImgUrl = "./src/images/run-icon.svg";
                 break;
             case 2:
-                typeClass += " m-shot";
+                sideClass += " m-shot";
                 diceTypeImgUrl = "./src/images/shot-icon.svg";
                 break;
             default:
@@ -445,6 +486,7 @@ var SingleDice = (function (_super) {
                 break;
         }
         classNames += typeClass;
+        classNames += sideClass;
         return (React.createElement("div", { className: "e-single-dice" },
             React.createElement("div", { className: classNames },
                 React.createElement("img", { src: diceTypeImgUrl }))));

@@ -16,6 +16,10 @@ interface ISingleDiceProps {
     total?: number;
 }
 
+interface IDiceOdds {
+    odds: number[];
+}
+
 interface IZombieDiceState {
     gameScore: number;
     gameShots: number;
@@ -23,8 +27,10 @@ interface IZombieDiceState {
     totalGreenDice: number;
     totalYellowDice: number;
     totalRedDice: number;
+    diceOdds: [IDiceOdds],
     remaingDice: number[],
-    rolledHand: number[];
+    rolledDice: number[];
+    rolledSide: number[];
     keptHand: number[];
     dice: [ISingleDiceProps];
     winningScore: number;
@@ -47,9 +53,17 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
             totalGreenDice: initialTotalGreen,
             totalYellowDice: initialTotalYellow,
             totalRedDice: initialTotalRed,
-            remaingDice: [],
-            rolledHand: [],
-            keptHand: [0,0,0],
+            diceOdds: [{
+                odds: [0,0,0,1,1,2] //Green Dice | Brains = 0; Runs = 1; Shots = 2
+            },{
+                odds: [0,0,1,1,2,2] //Yellow Dice | Brains = 0; Runs = 1; Shots = 2
+            },{
+                odds: [0,1,1,2,2,2] //Red Dice | Brains = 0; Runs = 1; Shots = 2
+            }],
+            remaingDice: [],  //Dice Type Numbers
+            rolledDice: [],  //Dice Type Numbers
+            rolledSide: [], //Dice Side Numbers
+            keptHand: [0,0,0], //Dice Type Numbers
             dice: [{ //Green
                     type: 0,
                     brains: 3,
@@ -76,7 +90,15 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
     }
 
     componentWillMount(){
-        this.remaingDiceList(this.state.dice[0], this.state.dice[1], this.state.dice[2]);
+        let allDice: number[] = [];
+
+        this.diceListBuilder(allDice, this.state.dice[0].total, this.state.dice[0].type);
+        this.diceListBuilder(allDice, this.state.dice[1].total, this.state.dice[1].type);
+        this.diceListBuilder(allDice, this.state.dice[2].total, this.state.dice[2].type);
+
+        this.setState({
+            remaingDice: allDice
+        });
     }
 
     private diceListBuilder(allDiceList: number[], diceTotal: number, diceType: number){
@@ -85,21 +107,23 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
         }
     }
 
-    private remaingDiceList(greenDice: any, yellowDice: any, redDice: any){
-        let allDice: number[] = [];
+    private getRandomDice(arr: number[]){
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
 
-        this.diceListBuilder(allDice, greenDice.total, greenDice.type);
-        this.diceListBuilder(allDice, yellowDice.total, yellowDice.type);
-        this.diceListBuilder(allDice, redDice.total, redDice.type);
-        this.setState({
-            remaingDice: allDice
-        });
+    private getRandomDiceSide(diceType: number){
+        if(typeof diceType !== "undefined"){
+            let diceOdds: number[] = this.state.diceOdds[diceType].odds;
+            let randomSide: number = this.getRandomDice(diceOdds);
+            return randomSide;
+        }
     }
 
     private getDice(remaingDice: number[], totalGet: number) {
 
         let diceList: number[] = remaingDice;
-        let allRolledDice: number[] = [];
+        let rolledDiceHand: number[] = [];
+        let rolledDiceSide: number[] = [];
         let diceToKeep: number[] = [];
 
         let currentScore: number = this.state.gameScore;
@@ -107,26 +131,38 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
 
         if(diceList.length >= 2 ) {
             for(let i = 0; i < totalGet; i++){
-                let rolledDice: number = diceList[Math.floor(Math.random() * diceList.length)];
-                allRolledDice.push(rolledDice);
+
+                let rolledDice: number = this.getRandomDice(diceList);
+                let rolledSide: number = this.getRandomDiceSide(rolledDice)
+
+                rolledDiceHand.push(rolledDice);
+                rolledDiceSide.push(rolledSide);
+
                 switch(rolledDice) {
                     case 0:
-                        currentScore++;
                         diceList.splice(diceList.indexOf(rolledDice), 1);
                         break;
                     case 1:
                         diceToKeep.push(rolledDice);
                         break;
                     case 2:
-                        currentShots++;
                         diceList.splice(diceList.indexOf(rolledDice), 1);
+                        break;
+                }
+
+                switch(rolledSide) {
+                    case 0:
+                        currentScore++;
+                        break;
+                    case 2:
+                        currentShots++;
                         break;
                 }
             }
         }
 
-        this.animate( 2000, () => {
-            this.updateScore( currentShots, currentScore, remaingDice, allRolledDice, diceToKeep )
+        this.animate( 0, () => {
+            this.updateScore( currentShots, currentScore, remaingDice, rolledDiceHand, rolledDiceSide, diceToKeep )
         });
     }
 
@@ -142,13 +178,14 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
         }, delay);
     }
 
-    private updateScore(gameShots: number, gameScore: number, remaingDice: number[], rolledHand: number[], keptHand: number[]){
+    private updateScore(gameShots: number, gameScore: number, remaingDice: number[], rolledDice: number[], rolledSide: number[], keptHand: number[]){
         if(gameShots >= this.state.deathScore){
             this.setState({
                 gameOver: true,
                 gameShots: gameShots,
                 remaingDice: remaingDice,
-                rolledHand: rolledHand,
+                rolledDice: rolledDice,
+                rolledSide: rolledSide,
                 keptHand: keptHand
             });
         } else {
@@ -156,7 +193,8 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
                 gameShots: gameShots,
                 gameScore: gameScore,
                 remaingDice: remaingDice,
-                rolledHand: rolledHand,
+                rolledDice: rolledDice,
+                rolledSide: rolledSide,
                 keptHand: keptHand
             });
         }
@@ -174,9 +212,9 @@ export class GameContainer extends React.Component<{}, IZombieDiceState> {
                 <Graphics gameOver={this.state.gameOver} imgUrl="./src/images/walking-animation.gif" classNames="b-main-image" />
                 <div className="e-actions">
                     <Animate animate={this.state.animated} baseClass="b-dice clearfix" animateActive="m-animate" animateDone="m-animate-done">
-                        <SingleDice type={this.state.rolledHand[0]} key={0} />
-                        <SingleDice type={this.state.rolledHand[1]} key={1} />
-                        <SingleDice type={this.state.rolledHand[2]} key={2} />
+                        <SingleDice type={this.state.rolledDice[0]} side={this.state.rolledSide[0]} key={0} />
+                        <SingleDice type={this.state.rolledDice[1]} side={this.state.rolledSide[1]} key={1} />
+                        <SingleDice type={this.state.rolledDice[2]} side={this.state.rolledSide[2]} key={2} />
                     </Animate>
                     <Actions gameState={this.state.gameOver} onRollClick={(e) => this.handleDiceRoll(e)} />
                     {/* <Debugger info={[this.state.remaingDice, this.state.rolledHand]} /> */}
